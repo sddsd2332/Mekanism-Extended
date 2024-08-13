@@ -1,6 +1,8 @@
 package mekexcavator.common;
 
 import mekanism.common.base.IGuiProvider;
+import mekexcavator.common.inventory.container.ContainerExcavatorItem;
+import mekexcavator.common.tile.TileEntityExcavatorItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.tileentity.TileEntity;
@@ -16,7 +18,7 @@ public class MekanismExcavatorCommonProxy implements IGuiProvider {
     }
 
     public void registerTileEntities() {
-
+        registerTileEntity(TileEntityExcavatorItem.class, "Excavator_Item");
     }
 
 
@@ -45,6 +47,7 @@ public class MekanismExcavatorCommonProxy implements IGuiProvider {
     public Container getServerGui(int ID, EntityPlayer player, World world, BlockPos pos) {
         TileEntity tileEntity = world.getTileEntity(pos);
         return switch (ID) {
+            case 0 -> new ContainerExcavatorItem(player.inventory, (TileEntityExcavatorItem) tileEntity);
             default -> null;
         };
     }
