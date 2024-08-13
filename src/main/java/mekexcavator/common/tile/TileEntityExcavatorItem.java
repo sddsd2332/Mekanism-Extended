@@ -3,7 +3,6 @@ package mekexcavator.common.tile;
 import blusunrize.immersiveengineering.api.tool.ExcavatorHandler;
 import blusunrize.immersiveengineering.api.tool.ExcavatorHandler.MineralWorldInfo;
 import blusunrize.immersiveengineering.api.tool.IDrillHead;
-import blusunrize.immersiveengineering.common.Config;
 import io.netty.buffer.ByteBuf;
 import mekanism.api.Coord4D;
 import mekanism.api.TileNetworkList;
@@ -15,6 +14,7 @@ import mekanism.common.util.*;
 import mekexcavator.common.block.states.BlockStateExcavatorMachine.ExcavatorMachineType;
 import mekexcavator.common.tile.prefab.TileEntityExcavatorBasicMachine;
 import net.minecraft.block.state.BlockFaceShape;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -27,10 +27,13 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.oredict.OreDictionary;
 
 import javax.annotation.Nonnull;
 import java.util.Random;
 import java.util.stream.IntStream;
+
+import static net.minecraftforge.items.ItemHandlerHelper.copyStackWithSize;
 
 public class TileEntityExcavatorItem extends TileEntityExcavatorBasicMachine implements IAdvancedBoundingBlock {
 
@@ -55,7 +58,7 @@ public class TileEntityExcavatorItem extends TileEntityExcavatorBasicMachine imp
             ExcavatorHandler.MineralMix mineral = ExcavatorHandler.getRandomMineral(world, chunkPos.x, chunkPos.z);
             if (MekanismUtils.canFunction(this) && getEnergy() >= energyPerTick && canInsert() && mineral != null && !drillhead.isEmpty() && drillhead.getItem() instanceof IDrillHead head) {
                 setActive(true);
-                if (RAND.nextInt(4) == 0){
+                if (RAND.nextInt(4) == 0) {
                     head.damageHead(drillhead, 1);
                 }
                 ItemStack ore = mineral.getRandomOre(RAND);
@@ -64,7 +67,7 @@ public class TileEntityExcavatorItem extends TileEntityExcavatorBasicMachine imp
                     operatingTicks++;
                 } else if ((operatingTicks + 1) >= ticksRequired) {
                     if (!ore.isEmpty()) {
-                        add(ore);
+                        add(ore, ore.getCount());
                         ExcavatorHandler.depleteMinerals(world, chunkPos.x, chunkPos.z);
                     }
                     operatingTicks = 0;
@@ -162,17 +165,54 @@ public class TileEntityExcavatorItem extends TileEntityExcavatorBasicMachine imp
     }
 
 
-    public void add(ItemStack stacks) {
-        if (stacks.isEmpty()) {
+    public synchronized void add(ItemStack stack, int maxInsert) {
+        if (stack.isEmpty()) {
             return;
         }
+        int inserted = 0;
         for (int i = 0; i < 27; i++) {
-            ItemStack currentStack = inventory.get(i);
-            if (currentStack.isEmpty()) {
-                inventory.set(i, stacks);
+            int maxStackSize = inventory.get(i).getMaxStackSize();
+            ItemStack in = inventory.get(i);
+            int count = in.getCount();
+            if (count >= maxStackSize) {
+                continue;
+            }
+            if (in.isEmpty()) {
+                int toInsert = Math.min(maxInsert - inserted, maxStackSize);
+                inventory.set(i, copyStackWithSize(stack, toInsert));
+                inserted += toInsert;
+            } else {
+                if (stackEqualsNonNBT(stack, in) && matchTags(stack, in)) {
+                    int toInsert = Math.min(maxInsert - inserted, maxStackSize - count);
+                    inventory.set(i, copyStackWithSize(stack, toInsert + count));
+                    inserted += toInsert;
+                }
+            }
+            if (inserted >= maxInsert) {
                 break;
             }
         }
+    }
+
+    public static boolean stackEqualsNonNBT(@Nonnull ItemStack stack, @Nonnull ItemStack other) {
+        if (stack.isEmpty() && other.isEmpty())
+            return true;
+        if (stack.isEmpty() || other.isEmpty())
+            return false;
+        Item sItem = stack.getItem();
+        Item oItem = other.getItem();
+        if (sItem.getHasSubtypes() || oItem.getHasSubtypes()) {
+            return sItem.equals(other.getItem()) &&
+                    (stack.getItemDamage() == other.getItemDamage() ||
+                            stack.getItemDamage() == OreDictionary.WILDCARD_VALUE ||
+                            other.getItemDamage() == OreDictionary.WILDCARD_VALUE);
+        } else {
+            return sItem.equals(other.getItem());
+        }
+    }
+
+    public static boolean matchTags(@Nonnull ItemStack stack, @Nonnull ItemStack other) {
+        return ItemStack.areItemStackTagsEqual(stack, other);
     }
 
     @Override
