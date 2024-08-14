@@ -42,7 +42,7 @@ public class TileEntityExcavatorItem extends TileEntityExcavatorBasicMachine imp
     public int delayTicks;
 
     public TileEntityExcavatorItem() {
-        super("DigitalMiner", ExcavatorMachineType.EXCAVATOR_ITEM, 200, INV_SLOTS.length);
+        super("null", ExcavatorMachineType.EXCAVATOR_ITEM, 200, INV_SLOTS.length);
         inventory = NonNullListSynchronized.withSize(INV_SLOTS.length + 1, ItemStack.EMPTY);
     }
 

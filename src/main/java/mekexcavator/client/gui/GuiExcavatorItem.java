@@ -4,6 +4,7 @@ import mekanism.api.TileNetworkList;
 import mekanism.client.gui.GuiMekanismTile;
 import mekanism.client.gui.button.GuiDisableableButton;
 import mekanism.client.gui.element.*;
+import mekanism.client.gui.element.gauge.GuiEnergyGauge;
 import mekanism.client.gui.element.tab.GuiSecurityTab;
 import mekanism.client.gui.element.tab.GuiUpgradeTab;
 import mekanism.client.sound.SoundHandler;
@@ -39,8 +40,8 @@ public class GuiExcavatorItem extends GuiMekanismTile<TileEntityExcavatorItem> {
             return Arrays.asList(LangUtils.localize("gui.using") + ": " + multiplier + "/t",
                     LangUtils.localize("gui.needed") + ": " + MekanismUtils.getEnergyDisplay(tileEntity.getMaxEnergy() - tileEntity.getEnergy()));
         }, this, resource));
-        addGuiElement(new GuiSlot(GuiSlot.SlotType.INPUT, this, resource, 96, 55).with(GuiSlot.SlotOverlay.INPUT));
-        addGuiElement(new GuiSlot(GuiSlot.SlotType.POWER, this, resource, 132, 55).with(GuiSlot.SlotOverlay.POWER));
+        addGuiElement(new GuiSlot(GuiSlot.SlotType.INPUT, this, resource, 106, 43).with(GuiSlot.SlotOverlay.INPUT));
+        addGuiElement(new GuiSlot(GuiSlot.SlotType.POWER, this, resource, 151, 6).with(GuiSlot.SlotOverlay.POWER));
         addGuiElement(new GuiInnerScreen(this, resource, 7, 19, 78, 69));
         addGuiElement(new GuiPlayerSlot(this, resource, 7, 159));
         for (int y = 0; y < 3; y++) {
@@ -48,6 +49,18 @@ public class GuiExcavatorItem extends GuiMekanismTile<TileEntityExcavatorItem> {
                 addGuiElement(new GuiSlot(GuiSlot.SlotType.NORMAL, this, resource, 7 + x * 18, 91 + y * 18));
             }
         }
+        addGuiElement(new GuiProgress(new GuiProgress.IProgressInfoHandler() {
+            @Override
+            public double getProgress() {
+                return tileEntity.getScaledProgress();
+            }
+        }, GuiProgress.ProgressBar.DOWN, this, resource, 109, 65));
+        addGuiElement(new GuiEnergyGauge(() -> tileEntity, GuiEnergyGauge.Type.STANDARD, this, resource, 151, 28) {
+            @Override
+            public String getTooltipText() {
+                return MekanismUtils.getEnergyDisplay(tileEntity.getEnergy(), tileEntity.getMaxEnergy());
+            }
+        });
         ySize += 76;
     }
 
@@ -55,14 +68,16 @@ public class GuiExcavatorItem extends GuiMekanismTile<TileEntityExcavatorItem> {
     public void initGui() {
         super.initGui();
         buttonList.clear();
-        int buttonStart = 19;
-        buttonList.add(EjectButton = new GuiDisableableButton(0, guiLeft + 87, guiTop + buttonStart, 61, 18, LangUtils.localize("gui.autoEject")));
+        buttonList.add(EjectButton = new GuiDisableableButton(0, guiLeft + 88, guiTop + 19, 61, 18, LangUtils.localize("gui.autoEject")));
     }
 
     @Override
     protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
         fontRenderer.drawString(tileEntity.getName(), (xSize / 2) - (fontRenderer.getStringWidth(tileEntity.getName()) / 2), 4, 0x404040);
         fontRenderer.drawString(LangUtils.localize("container.inventory"), 8, (ySize - 96) + 2, 0x404040);
+        fontRenderer.drawString(LangUtils.localize("gui.dimensionId") + ":" + tileEntity.getWorld().provider.getDimension(), 8, 20, 0x33ff99);
+        fontRenderer.drawString(LangUtils.localize("gui.dimensionName") + ":", 8, 29, 0x33ff99);
+        fontRenderer.drawString(tileEntity.getWorld().provider.getDimensionType().getName(), 8, 38, 0x33ff99);
         super.drawGuiContainerForegroundLayer(mouseX, mouseY);
     }
 

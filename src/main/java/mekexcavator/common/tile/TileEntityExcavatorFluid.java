@@ -45,7 +45,7 @@ public class TileEntityExcavatorFluid extends TileEntityExcavatorBasicMachine im
     public int numPowering;
 
     public TileEntityExcavatorFluid() {
-        super("DigitalMiner", ExcavatorMachineType.EXCAVATOR_FLUID, 200, 3);
+        super("ExcavatorFluid", ExcavatorMachineType.EXCAVATOR_FLUID, 200, 3);
         inventory = NonNullListSynchronized.withSize(4, ItemStack.EMPTY);
     }
 
@@ -79,12 +79,12 @@ public class TileEntityExcavatorFluid extends TileEntityExcavatorBasicMachine im
                 setActive(false);
             }
 
-            Mekanism.EXECUTE_MANAGER.addSyncTask(() -> {
-                if (doEject) {
+            if (doEject) {
+                Mekanism.EXECUTE_MANAGER.addSyncTask(() -> {
                     handleLeftTank(fluidTank, getLeftTankside());
                     handleRightTank(fluidTank, getRightTankside());
-                }
-            });
+                });
+            }
             prevEnergy = getEnergy();
         }
     }
@@ -147,7 +147,9 @@ public class TileEntityExcavatorFluid extends TileEntityExcavatorBasicMachine im
         }
         super.handlePacketData(dataStream);
         if (FMLCommonHandler.instance().getEffectiveSide().isClient()) {
+            doEject = dataStream.readBoolean();
             TileUtils.readTankData(dataStream, fluidTank);
+            numPowering = dataStream.readInt();
         }
     }
 
@@ -156,6 +158,7 @@ public class TileEntityExcavatorFluid extends TileEntityExcavatorBasicMachine im
         super.getNetworkedData(data);
         data.add(doEject);
         TileUtils.addTankData(data, fluidTank);
+        data.add(numPowering);
         return data;
     }
 

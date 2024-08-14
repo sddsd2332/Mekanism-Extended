@@ -1,0 +1,10 @@
+{
+      "tile.ExcavatorFluid": {
+            "sounds": [{
+                  "stream": false,
+                  "name": "mekanism:ExcavatorFluid"
+            }],
+            "subtitle": "sound_event.mekanism.tile.ExcavatorFluid",
+            "category": "block"
+      }
+}

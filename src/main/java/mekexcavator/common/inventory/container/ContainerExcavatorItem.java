@@ -62,13 +62,13 @@ public class ContainerExcavatorItem extends ContainerMekanism<TileEntityExcavato
                 addSlotToContainer(new Slot(tileEntity, slotX + slotY * 9, 8 + slotX * 18, 92 + slotY * 18));
             }
         }
-        addSlotToContainer(new Slot(tileEntity, 27, 97, 56) {
+        addSlotToContainer(new Slot(tileEntity, 27, 107, 44) {
             @Override
             public boolean isItemValid(ItemStack itemstack) {
                 return itemstack.getItem() instanceof IDrillHead;
             }
         });
-        addSlotToContainer(new SlotEnergy.SlotDischarge(tileEntity, 28, 133, 56));
+        addSlotToContainer(new SlotEnergy.SlotDischarge(tileEntity, 28, 152, 7));
     }
 
     @Override
