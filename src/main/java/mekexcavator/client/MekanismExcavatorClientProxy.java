@@ -2,12 +2,14 @@ package mekexcavator.client;
 
 import mekanism.client.render.MekanismRenderer;
 import mekanism.client.render.item.ItemLayerWrapper;
+import mekexcavator.client.gui.GuiExcavatorFluid;
 import mekexcavator.client.gui.GuiExcavatorItem;
 import mekexcavator.common.MekanismExcavator;
 import mekexcavator.common.MekanismExcavatorBlocks;
 import mekexcavator.common.MekanismExcavatorCommonProxy;
 import mekexcavator.common.block.states.BlockStateExcavatorMachine.ExcavatorMachineBlockStateMapper;
 import mekexcavator.common.block.states.BlockStateExcavatorMachine.ExcavatorMachineType;
+import mekexcavator.common.tile.TileEntityExcavatorFluid;
 import mekexcavator.common.tile.TileEntityExcavatorItem;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.block.model.IBakedModel;
@@ -83,6 +85,7 @@ public class MekanismExcavatorClientProxy extends MekanismExcavatorCommonProxy {
         TileEntity tileEntity = world.getTileEntity(pos);
         return switch (ID) {
             case 0 -> new GuiExcavatorItem(player.inventory, (TileEntityExcavatorItem) tileEntity);
+            case 1 -> new GuiExcavatorFluid(player.inventory, (TileEntityExcavatorFluid) tileEntity);
             default -> null;
         };
     }

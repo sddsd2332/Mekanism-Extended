@@ -7,6 +7,7 @@ import mekanism.common.util.LangUtils;
 import mekexcavator.common.MekanismExcavator;
 import mekexcavator.common.MekanismExcavatorBlocks;
 import mekexcavator.common.block.BlockExcavatorMachine;
+import mekexcavator.common.tile.TileEntityExcavatorFluid;
 import mekexcavator.common.tile.TileEntityExcavatorItem;
 import net.minecraft.block.Block;
 import net.minecraft.block.properties.IProperty;
@@ -60,6 +61,7 @@ public class BlockStateExcavatorMachine extends ExtendedBlockState {
 
     public enum ExcavatorMachineType implements IStringSerializable, IBlockType {
         EXCAVATOR_ITEM(ExcavatorMachineBlock.EXCAVATOR_MACHINE_BLOCK, 0, "Excavator_item", 0, TileEntityExcavatorItem::new, true, true, true, EnumFacing.Plane.HORIZONTAL, false),
+        EXCAVATOR_FLUID(ExcavatorMachineBlock.EXCAVATOR_MACHINE_BLOCK, 1, "Excavator_fluid", 1, TileEntityExcavatorFluid::new, true, true, true, EnumFacing.Plane.HORIZONTAL, false),
         ;
 
         private static final List<ExcavatorMachineType> VALID_MACHINES = new ArrayList<>();

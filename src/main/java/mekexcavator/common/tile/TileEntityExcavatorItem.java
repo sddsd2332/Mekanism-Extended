@@ -30,14 +30,12 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.oredict.OreDictionary;
 
 import javax.annotation.Nonnull;
-import java.util.Random;
 import java.util.stream.IntStream;
 
 import static net.minecraftforge.items.ItemHandlerHelper.copyStackWithSize;
 
 public class TileEntityExcavatorItem extends TileEntityExcavatorBasicMachine implements IAdvancedBoundingBlock {
 
-    public static final Random RAND = new Random();
     private static final int[] INV_SLOTS = IntStream.range(0, 29).toArray();
     public boolean doEject = false;
     public int numPowering;
@@ -46,6 +44,32 @@ public class TileEntityExcavatorItem extends TileEntityExcavatorBasicMachine imp
     public TileEntityExcavatorItem() {
         super("DigitalMiner", ExcavatorMachineType.EXCAVATOR_ITEM, 200, INV_SLOTS.length);
         inventory = NonNullListSynchronized.withSize(INV_SLOTS.length + 1, ItemStack.EMPTY);
+    }
+
+    public static boolean matchStacks(@Nonnull ItemStack stack, @Nonnull ItemStack other) {
+        if (!ItemStack.areItemsEqual(stack, other)) return false;
+        return ItemStack.areItemStackTagsEqual(stack, other);
+    }
+
+    public static boolean stackEqualsNonNBT(@Nonnull ItemStack stack, @Nonnull ItemStack other) {
+        if (stack.isEmpty() && other.isEmpty())
+            return true;
+        if (stack.isEmpty() || other.isEmpty())
+            return false;
+        Item sItem = stack.getItem();
+        Item oItem = other.getItem();
+        if (sItem.getHasSubtypes() || oItem.getHasSubtypes()) {
+            return sItem.equals(other.getItem()) &&
+                    (stack.getItemDamage() == other.getItemDamage() ||
+                            stack.getItemDamage() == OreDictionary.WILDCARD_VALUE ||
+                            other.getItemDamage() == OreDictionary.WILDCARD_VALUE);
+        } else {
+            return sItem.equals(other.getItem());
+        }
+    }
+
+    public static boolean matchTags(@Nonnull ItemStack stack, @Nonnull ItemStack other) {
+        return ItemStack.areItemStackTagsEqual(stack, other);
     }
 
     @Override
@@ -149,11 +173,6 @@ public class TileEntityExcavatorItem extends TileEntityExcavatorBasicMachine imp
         }
     }
 
-    public static boolean matchStacks(@Nonnull ItemStack stack, @Nonnull ItemStack other) {
-        if (!ItemStack.areItemsEqual(stack, other)) return false;
-        return ItemStack.areItemStackTagsEqual(stack, other);
-    }
-
     public boolean canInsert() {
         for (int i = 0; i < 27; i++) {
             ItemStack currentStack = inventory.get(i);
@@ -163,7 +182,6 @@ public class TileEntityExcavatorItem extends TileEntityExcavatorBasicMachine imp
         }
         return false;
     }
-
 
     public synchronized void add(ItemStack stack, int maxInsert) {
         if (stack.isEmpty()) {
@@ -192,27 +210,6 @@ public class TileEntityExcavatorItem extends TileEntityExcavatorBasicMachine imp
                 break;
             }
         }
-    }
-
-    public static boolean stackEqualsNonNBT(@Nonnull ItemStack stack, @Nonnull ItemStack other) {
-        if (stack.isEmpty() && other.isEmpty())
-            return true;
-        if (stack.isEmpty() || other.isEmpty())
-            return false;
-        Item sItem = stack.getItem();
-        Item oItem = other.getItem();
-        if (sItem.getHasSubtypes() || oItem.getHasSubtypes()) {
-            return sItem.equals(other.getItem()) &&
-                    (stack.getItemDamage() == other.getItemDamage() ||
-                            stack.getItemDamage() == OreDictionary.WILDCARD_VALUE ||
-                            other.getItemDamage() == OreDictionary.WILDCARD_VALUE);
-        } else {
-            return sItem.equals(other.getItem());
-        }
-    }
-
-    public static boolean matchTags(@Nonnull ItemStack stack, @Nonnull ItemStack other) {
-        return ItemStack.areItemStackTagsEqual(stack, other);
     }
 
     @Override
@@ -345,6 +342,7 @@ public class TileEntityExcavatorItem extends TileEntityExcavatorBasicMachine imp
         doEject = nbtTags.getBoolean("doEject");
     }
 
+    @Override
     public String getDataType() {
         return getBlockType().getTranslationKey() + "." + fullName + ".name";
     }
