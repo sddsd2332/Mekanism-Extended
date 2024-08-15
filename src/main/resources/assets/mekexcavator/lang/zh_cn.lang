@@ -1,1 +1,10 @@
 sound_event.mekanism.tile.ExcavatorFluid=抽油机：咣当
+gui.chunkOre=区块含有矿脉
+gui.chunkNoneOre=区块无矿脉
+gui.chunkOreMined=已开采数量
+gui.chunkVeinSize=矿脉大小
+gui.chunkFluid=区块含有流体
+gui.chunkNoneFluid=区块无流体
+gui.chunkFluidMined=已开采流体
+gui.chunkFluidSize=区块含流体大小
+gui.chunkDepletionMining=枯竭开采

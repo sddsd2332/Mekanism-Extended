@@ -78,6 +78,15 @@ public class GuiExcavatorItem extends GuiMekanismTile<TileEntityExcavatorItem> {
         fontRenderer.drawString(LangUtils.localize("gui.dimensionId") + ":" + tileEntity.getWorld().provider.getDimension(), 8, 20, 0x33ff99);
         fontRenderer.drawString(LangUtils.localize("gui.dimensionName") + ":", 8, 29, 0x33ff99);
         fontRenderer.drawString(tileEntity.getWorld().provider.getDimensionType().getName(), 8, 38, 0x33ff99);
+        fontRenderer.drawString(LangUtils.localize("gui.eject") + ":" + LangUtils.transOnOff(tileEntity.doEject), 8, 47, 0x33ff99);
+        if (tileEntity.ContainsOreVeins) {
+            fontRenderer.drawString(LangUtils.localize("gui.chunkOre"), 8, 56, 0x33ff99);
+            fontRenderer.drawString(LangUtils.localize("gui.chunkOreMined") + ":" + (tileEntity.mineralDepletion == -1 ? LangUtils.localize("gui.infinite") : tileEntity.mineralDepletion), 8, 65, 0x33ff99);
+            fontRenderer.drawString(LangUtils.localize("gui.chunkVeinSize") + ":" + (tileEntity.mineralVeinCapacity == -1 ? LangUtils.localize("gui.infinite") : tileEntity.mineralVeinCapacity), 8, 74, 0x33ff99);
+        } else {
+            fontRenderer.drawString(LangUtils.localize("gui.chunkNoneOre"), 8, 56, 0x33ff99);
+        }
+
         super.drawGuiContainerForegroundLayer(mouseX, mouseY);
     }
 

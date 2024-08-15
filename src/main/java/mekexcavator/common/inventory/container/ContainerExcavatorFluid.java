@@ -75,8 +75,13 @@ public class ContainerExcavatorFluid extends ContainerMekanism<TileEntityExcavat
 
     @Override
     protected void addSlots() {
-        addSlotToContainer(new SlotEnergy.SlotDischarge(tileEntity, 0, 133, 56));
-        addSlotToContainer(new Slot(tileEntity, 1, 146, 19));
-        addSlotToContainer(new SlotOutput(tileEntity, 2, 146, 51));
+        addSlotToContainer(new SlotEnergy.SlotDischarge(tileEntity, 0, 152, 89));
+        addSlotToContainer(new Slot(tileEntity, 1, 89, 89));
+        addSlotToContainer(new SlotOutput(tileEntity, 2, 131, 89));
+    }
+
+    @Override
+    protected int getInventorYOffset() {
+        return 121;
     }
 }

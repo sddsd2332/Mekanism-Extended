@@ -4,6 +4,9 @@ import mekanism.api.TileNetworkList;
 import mekanism.client.gui.GuiMekanismTile;
 import mekanism.client.gui.button.GuiDisableableButton;
 import mekanism.client.gui.element.*;
+import mekanism.client.gui.element.gauge.GuiEnergyGauge;
+import mekanism.client.gui.element.gauge.GuiFluidGauge;
+import mekanism.client.gui.element.gauge.GuiGauge;
 import mekanism.client.gui.element.tab.GuiSecurityTab;
 import mekanism.client.gui.element.tab.GuiUpgradeTab;
 import mekanism.client.sound.SoundHandler;
@@ -40,22 +43,63 @@ public class GuiExcavatorFluid extends GuiMekanismTile<TileEntityExcavatorFluid>
                     LangUtils.localize("gui.needed") + ": " + MekanismUtils.getEnergyDisplay(tileEntity.getMaxEnergy() - tileEntity.getEnergy()));
         }, this, resource));
 
-        addGuiElement(new GuiInnerScreen(this, resource, 7, 19, 78, 69));
-        addGuiElement(new GuiPlayerSlot(this, resource));
+        addGuiElement(new GuiInnerScreen(this, resource, 7, 19, 78, 87));
+        addGuiElement(new GuiPlayerSlot(this, resource, 7, 120));
+        addGuiElement(new GuiSlot(GuiSlot.SlotType.INPUT, this, resource, 88, 88));
+        addGuiElement(new GuiSlot(GuiSlot.SlotType.OUTPUT, this, resource, 130, 88));
+        addGuiElement(new GuiSlot(GuiSlot.SlotType.POWER, this, resource, 151, 88).with(GuiSlot.SlotOverlay.POWER));
+        addGuiElement(new GuiFluidGauge(() -> tileEntity.fluidTank, GuiGauge.Type.STANDARD, this, resource, 130, 19));
+        addGuiElement(new GuiEnergyGauge(() -> tileEntity, GuiEnergyGauge.Type.STANDARD, this, resource, 151, 19) {
+            @Override
+            public String getTooltipText() {
+                return MekanismUtils.getEnergyDisplay(tileEntity.getEnergy(), tileEntity.getMaxEnergy());
+            }
+        });
+        addGuiElement(new GuiProgress(new GuiProgress.IProgressInfoHandler() {
+            @Override
+            public double getProgress() {
+                return tileEntity.getScaledProgress();
+            }
+        }, GuiProgress.ProgressBar.MEDIUM, this, resource, 89, 52));
+        addGuiElement(new GuiProgress(new GuiProgress.IProgressInfoHandler() {
+            @Override
+            public double getProgress() {
+                return 0F;
+            }
+        }, GuiProgress.ProgressBar.BI_RIGHT, this, resource, 108, 93));
+        ySize += 37;
     }
 
     @Override
     public void initGui() {
         super.initGui();
         buttonList.clear();
-        int buttonStart = 19;
-        buttonList.add(EjectButton = new GuiDisableableButton(0, guiLeft + 87, guiTop + buttonStart, 61, 18, LangUtils.localize("gui.autoEject")));
+        buttonList.add(EjectButton = new GuiDisableableButton(0, guiLeft + 86, guiTop + 19, 43, 18, LangUtils.localize("gui.autoEject")));
     }
 
     @Override
     protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
         fontRenderer.drawString(tileEntity.getName(), (xSize / 2) - (fontRenderer.getStringWidth(tileEntity.getName()) / 2), 4, 0x404040);
         fontRenderer.drawString(LangUtils.localize("container.inventory"), 8, (ySize - 96) + 2, 0x404040);
+        fontRenderer.drawString(LangUtils.localize("gui.dimensionId") + ":" + tileEntity.getWorld().provider.getDimension(), 8, 20, 0x33ff99);
+        fontRenderer.drawString(LangUtils.localize("gui.dimensionName") + ":", 8, 29, 0x33ff99);
+        fontRenderer.drawString(tileEntity.getWorld().provider.getDimensionType().getName(), 8, 38, 0x33ff99);
+        fontRenderer.drawString(LangUtils.localize("gui.eject") + ":" + LangUtils.transOnOff(tileEntity.doEject), 8, 47, 0x33ff99);
+        if (tileEntity.ContainsFluidVeins) {
+            fontRenderer.drawString(LangUtils.localize("gui.chunkFluid"), 8, 56, 0x33ff99);
+            String s = LangUtils.localize("gui.chunkFluidMined") + ":";
+            String s2 = tileEntity.fluidVeinCapacity - tileEntity.fluidDepletion + " mb";
+            if (tileEntity.fluidVeinCapacity - tileEntity.fluidDepletion == tileEntity.fluidVeinCapacity && tileEntity.fluidReplenishRate > 0) {
+                s = LangUtils.localize("gui.chunkDepletionMining") + ":";
+                s2 = tileEntity.fluidReplenishRate + " mb";
+            }
+            fontRenderer.drawString(s, 8, 65, 0x33ff99);
+            fontRenderer.drawString(s2, 8, 74, 0x33ff99);
+            fontRenderer.drawString(LangUtils.localize("gui.chunkFluidSize") + ":", 8, 83, 0x33ff99);
+            fontRenderer.drawString(tileEntity.fluidVeinCapacity + " mb", 8, 92, 0x33ff99);
+        } else {
+            fontRenderer.drawString(LangUtils.localize("gui.chunkNoneFluid"), 8, 56, 0x33ff99);
+        }
         super.drawGuiContainerForegroundLayer(mouseX, mouseY);
     }
 

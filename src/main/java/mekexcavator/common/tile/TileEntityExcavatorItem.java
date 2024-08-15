@@ -1,7 +1,6 @@
 package mekexcavator.common.tile;
 
 import blusunrize.immersiveengineering.api.tool.ExcavatorHandler;
-import blusunrize.immersiveengineering.api.tool.ExcavatorHandler.MineralWorldInfo;
 import blusunrize.immersiveengineering.api.tool.IDrillHead;
 import io.netty.buffer.ByteBuf;
 import mekanism.api.Coord4D;
@@ -19,7 +18,10 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.*;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.math.Vec3i;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.fml.common.FMLCommonHandler;
@@ -40,11 +42,15 @@ public class TileEntityExcavatorItem extends TileEntityExcavatorBasicMachine imp
     public boolean doEject = false;
     public int numPowering;
     public int delayTicks;
+    public boolean ContainsOreVeins;
+    public int mineralVeinCapacity = 0;
+    public int mineralDepletion = 0;
 
     public TileEntityExcavatorItem() {
         super("null", ExcavatorMachineType.EXCAVATOR_ITEM, 200, INV_SLOTS.length);
         inventory = NonNullListSynchronized.withSize(INV_SLOTS.length + 1, ItemStack.EMPTY);
     }
+
 
     public static boolean matchStacks(@Nonnull ItemStack stack, @Nonnull ItemStack other) {
         if (!ItemStack.areItemsEqual(stack, other)) return false;
@@ -80,6 +86,7 @@ public class TileEntityExcavatorItem extends TileEntityExcavatorBasicMachine imp
             ItemStack drillhead = inventory.get(27);
             ChunkPos chunkPos = new ChunkPos(getPos());
             ExcavatorHandler.MineralMix mineral = ExcavatorHandler.getRandomMineral(world, chunkPos.x, chunkPos.z);
+            ExcavatorHandler.MineralWorldInfo info = ExcavatorHandler.getMineralWorldInfo(world, chunkPos.x, chunkPos.z);
             if (MekanismUtils.canFunction(this) && getEnergy() >= energyPerTick && canInsert() && mineral != null && !drillhead.isEmpty() && drillhead.getItem() instanceof IDrillHead head) {
                 setActive(true);
                 if (RAND.nextInt(4) == 0) {
@@ -98,6 +105,18 @@ public class TileEntityExcavatorItem extends TileEntityExcavatorBasicMachine imp
                 }
             } else if (prevEnergy >= getEnergy()) {
                 setActive(false);
+            }
+
+            if (mineral != null) {
+                ContainsOreVeins = true;
+                if (ExcavatorHandler.mineralVeinCapacity >= 0 && info.depletion >= 0) {
+                    mineralVeinCapacity = ExcavatorHandler.mineralVeinCapacity;
+                    mineralDepletion = info.depletion;
+                } else {
+                    mineralDepletion = mineralVeinCapacity = -1;
+                }
+            } else {
+                ContainsOreVeins = false;
             }
 
             if (delayTicks == 0 || MekanismConfig.current().mekce.ItemsEjectWithoutDelay.val()) {
@@ -173,6 +192,7 @@ public class TileEntityExcavatorItem extends TileEntityExcavatorBasicMachine imp
         }
     }
 
+
     public boolean canInsert() {
         for (int i = 0; i < 27; i++) {
             ItemStack currentStack = inventory.get(i);
@@ -235,6 +255,12 @@ public class TileEntityExcavatorItem extends TileEntityExcavatorBasicMachine imp
             return;
         }
         super.handlePacketData(dataStream);
+        if (FMLCommonHandler.instance().getEffectiveSide().isClient()) {
+            doEject = dataStream.readBoolean();
+            ContainsOreVeins = dataStream.readBoolean();
+            mineralDepletion = dataStream.readInt();
+            mineralVeinCapacity = dataStream.readInt();
+        }
     }
 
 
@@ -242,6 +268,9 @@ public class TileEntityExcavatorItem extends TileEntityExcavatorBasicMachine imp
     public TileNetworkList getNetworkedData(TileNetworkList data) {
         super.getNetworkedData(data);
         data.add(doEject);
+        data.add(ContainsOreVeins);
+        data.add(mineralDepletion);
+        data.add(mineralVeinCapacity);
         return data;
     }
 
@@ -347,21 +376,6 @@ public class TileEntityExcavatorItem extends TileEntityExcavatorBasicMachine imp
         return getBlockType().getTranslationKey() + "." + fullName + ".name";
     }
 
-    @Override
-    public int getRedstoneLevel() {
-        if (MekanismUtils.canFunction(this)) {
-            return 0;
-        }
-        if (world.getTileEntity(pos) instanceof TileEntityExcavatorItem) {
-            MineralWorldInfo info = ExcavatorHandler.getMineralWorldInfo(getWorld(), getPos().getX(), getPos().getZ());
-            if (info == null) {
-                return 0;
-            }
-            float remain = (ExcavatorHandler.mineralVeinCapacity - info.depletion) / (float) ExcavatorHandler.mineralVeinCapacity;
-            return MathHelper.floor(Math.max(remain, 0) * 15);
-        }
-        return 0;
-    }
 
     @Override
     public void writeSustainedData(ItemStack itemStack) {

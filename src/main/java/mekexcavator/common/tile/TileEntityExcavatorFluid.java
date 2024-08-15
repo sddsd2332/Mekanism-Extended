@@ -21,6 +21,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Vec3i;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.energy.CapabilityEnergy;
@@ -43,6 +44,10 @@ public class TileEntityExcavatorFluid extends TileEntityExcavatorBasicMachine im
     public FluidTank fluidTank = new FluidTank(FluidTankTier.ULTIMATE.getBaseStorage());
     public boolean doEject = false;
     public int numPowering;
+    public boolean ContainsFluidVeins;
+    public int fluidVeinCapacity = 0;
+    public int fluidDepletion = 0;
+    public int fluidReplenishRate = 0;
 
     public TileEntityExcavatorFluid() {
         super("ExcavatorFluid", ExcavatorMachineType.EXCAVATOR_FLUID, 200, 3);
@@ -61,11 +66,13 @@ public class TileEntityExcavatorFluid extends TileEntityExcavatorBasicMachine im
                     fluidTank.setFluid(null);
                 }
             }
+            ChunkPos chunkPos = new ChunkPos(getPos());
+            PumpjackHandler.OilWorldInfo info = PumpjackHandler.getOilWorldInfo(world, chunkPos.x, chunkPos.z);
             int residual = getResidualOil();
             int oilAmnt = availableOil() <= 0 ? residual : availableOil();
             FluidStack out = new FluidStack(availableFluid(), Math.min(1000, oilAmnt));
             int accepted = fluidTank.fill(out, false);
-            if (MekanismUtils.canFunction(this) && getEnergy() >= energyPerTick && (availableOil() > 0 || residual > 0) && accepted > 0 &&fluidTank.getFluidAmount() < fluidTank.getCapacity()) {
+            if (MekanismUtils.canFunction(this) && getEnergy() >= energyPerTick && (availableOil() > 0 || residual > 0) && accepted > 0 && fluidTank.getFluidAmount() < fluidTank.getCapacity()) {
                 setActive(true);
                 electricityStored.addAndGet(-energyPerTick);
                 if ((operatingTicks + 1) < ticksRequired) {
@@ -77,6 +84,17 @@ public class TileEntityExcavatorFluid extends TileEntityExcavatorBasicMachine im
                 }
             } else if (prevEnergy >= getEnergy()) {
                 setActive(false);
+            }
+
+            if (availableFluid() != null) {
+                ContainsFluidVeins = true;
+                fluidVeinCapacity = info.capacity;
+                fluidDepletion = info.current;
+                if (info.getType().replenishRate > 0 && info.current == 0) {
+                    fluidReplenishRate = info.getType().replenishRate;
+                }
+            } else {
+                ContainsFluidVeins = false;
             }
 
             if (doEject) {
@@ -150,6 +168,10 @@ public class TileEntityExcavatorFluid extends TileEntityExcavatorBasicMachine im
             doEject = dataStream.readBoolean();
             TileUtils.readTankData(dataStream, fluidTank);
             numPowering = dataStream.readInt();
+            ContainsFluidVeins = dataStream.readBoolean();
+            fluidDepletion = dataStream.readInt();
+            fluidVeinCapacity = dataStream.readInt();
+            fluidReplenishRate = dataStream.readInt();
         }
     }
 
@@ -159,6 +181,10 @@ public class TileEntityExcavatorFluid extends TileEntityExcavatorBasicMachine im
         data.add(doEject);
         TileUtils.addTankData(data, fluidTank);
         data.add(numPowering);
+        data.add(ContainsFluidVeins);
+        data.add(fluidDepletion);
+        data.add(fluidVeinCapacity);
+        data.add(fluidReplenishRate);
         return data;
     }
 

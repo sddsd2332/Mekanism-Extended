@@ -67,7 +67,9 @@ dependencies {
     implementation 'curse.maven:had-enough-items-557549:4543375'
     implementation 'curse.maven:inventory-tweaks-API-223094:2923461'
     implementation 'curse.maven:hwyla-253449:2568751'
+    implementation 'curse.maven:redstone-flux-270789:2920436'
     implementation rfg.deobf('curse.maven:CTM-267602:2915363')
+    implementation 'curse.maven:industrial-craft-242638:3838713'
     implementation 'curse.maven:the-one-probe-245211:2667280'
     implementation rfg.deobf('curse.maven:ae2-extended-life-570458:5378164')
     implementation 'curse.maven:flux-networks-248020:3178199'
@@ -81,5 +83,4 @@ dependencies {
     runtimeOnly 'curse.maven:MmmMmmMmmMmm-225738:2503041'
     implementation rfg.deobf('curse.maven:ae2-fluid-crafting-rework-623955:5405482')
     implementation rfg.deobf('curse.maven:mekanism-energistics-1027681:5402405')
-  
 }

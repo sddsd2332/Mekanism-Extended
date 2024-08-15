@@ -1,1 +1,10 @@
-sound_event.mekanism.tile.ExcavatorFluid=抽油机：咣当
+sound_event.mekanism.tile.ExcavatorFluid=Pumping unit clangs
+gui.chunkOre=Chunks contain ore veins
+gui.chunkNoneOre=Chunks without veins
+gui.chunkOreMined= Quantity mined
+gui.chunkVeinSize=Vein size
+gui.chunkFluid=Chunks contain fluids
+gui.chunkNoneFluid=Chunks without fluids
+gui.chunkFluidMined=Quantity fluids
+gui.chunkFluidSize=Fluids size
+gui.chunkDepletionMining=Depletion mining
